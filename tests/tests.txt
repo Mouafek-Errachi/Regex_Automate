@@ -1,0 +1,17 @@
+# expression ; mots acceptes (separes par des espaces, @ = mot vide) ; mots rejetes
+a ; a ; @ b aa ab
+a|b ; a b ; @ ab aa c
+ab* ; a ab abb abbb ; @ b aab aba
+(a|b)*abb ; abb aabb babb aaabb ababb bbbabb abbabb ; @ ab ba bb aab aba bba abba
+(ab)+ ; ab abab ababab ; @ a b abb aba ba
+a?b ; b ab ; @ a bb ba abb
+(a*)* ; @ a aa aaa aaaa ; b ab ba aab
+a(b|c)*d ; ad abd acd abcd acbd abcbcd ; @ a b d ab ba ac ca cd abc
+@ ; @ ; a b ab
+(((a*)*)*) ; @ a aa aaa ; b ab
+a|b|c ; a b c ; @ ab bc d
+a*+? ; @ a aa aaa ; b ab
+((a|b)*c)+d? ; c cd ac bc abc abcd acbc acbcd cc ; @ a b d ab ba acbd cdc ca
+(a|b|c|d)+ ; a b c d ab cd abcd ddd bca ; @ e ab0 xyz
+(A1|b2)*C ; C A1C b2C A1b2C b2A1C A1A1C ; @ A1 b2 A b2c A1c CC c
+(a?)* ; @ a aa aaa ; b ab

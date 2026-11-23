@@ -1,0 +1,33 @@
+# Java : classes compilées
+out/
+*.class
+sources.txt
+
+# Fichiers temporaires de test à la racine (le "/" les ancre à la racine,
+# donc automates/*.dot reste versionné)
+/automate.dot
+/parallel.dot
+/star.dot
+/z.dot
+/err.txt
+
+# Intermédiaires de génération du rapport (le PDF final reste versionné)
+rapport.html
+partie1_ll1.html
+
+# Archive de rendu
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Système
+Thumbs.db
+.DS_Store
+desktop.ini

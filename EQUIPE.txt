@@ -1,0 +1,25 @@
+================================================================
+EQUIPE — Syntaxe Lexicale
+================================================================
+
+Nom de l'équipe : Solo
+Date du rapport : 23/11/2026
+Effectif : 1
+
+----------------------------------------------------------------
+Répartition des rôles
+----------------------------------------------------------------
+Rôles conseillés par l'énoncé : rédacteur grammaire, responsable
+lexeur/parser, responsable Thompson, responsable numérotation,
+responsable export/simulation, responsable tests/rapport.
+
+Membre              | Rôle principal        | Parties écrites        | Parties relues        | Initiales
+--------------------+-----------------------+------------------------+-----------------------+----------
+Errachi Mouafek     | Tout                  | Tout                   | Tout          |         [  ]
+
+
+----------------------------------------------------------------
+Validation
+----------------------------------------------------------------
+Relecture croisée effectuée : OUI
+Tous les membres ont validé la version finale : OUI

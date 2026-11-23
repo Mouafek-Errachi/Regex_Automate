@@ -1,0 +1,11 @@
+# expression invalide ; position de l'erreur attendue (1-based, EOF = longueur + 1)
+(ab ; 4
+ab) ; 3
+*a ; 1
+a||b ; 3
+() ; 2
+|a ; 1
+a( ; 3
+a|* ; 3
+(a|) ; 4
+a#b ; 2
