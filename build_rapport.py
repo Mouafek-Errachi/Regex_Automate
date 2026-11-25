@@ -78,8 +78,17 @@ def convert(markdown: str) -> str:
             parts = s.split("|", 2)
             path = parts[1].strip() if len(parts) > 1 else ""
             legend = parts[2].strip() if len(parts) > 2 else ""
+            # Classe CSS optionnelle en fin de légende : |auto tree, |auto dep...
+            # On ne la retire que si le dernier champ est une classe connue,
+            # sinon un '|' dans la légende (ex. a|bc*) serait perdu.
+            m = re.search(r"\|(auto tree|auto dep|tree|dep|auto)$", legend)
+            img_class = "auto"
+            if m:
+                img_class = m.group(1)
+                legend = legend[:m.start()].rstrip()
             if (BASE / path).is_file():
-                picture = '<img class="auto" src="' + html.escape(path, quote=True) + '">'
+                picture = ('<img class="' + html.escape(img_class, quote=True)
+                           + '" src="' + html.escape(path, quote=True) + '">')
             else:
                 picture = ('<div class="imgph">'
                            + inline("IMAGE À INSÉRER : " + path) + "</div>")
@@ -203,6 +212,8 @@ tr, pre, blockquote, .imgbox { page-break-inside: avoid; }
   display: block; margin: 0 auto; max-width: 100%; max-height: 52mm;
   border: 1px solid #cfd4e0;
 }
+.imgbox img.tree { max-height: 78mm; }
+.imgbox img.dep { max-height: 95mm; }
 .legend { font-size: 7.8pt; color: #555; text-align: center; margin-top: 3px; }
 """
 

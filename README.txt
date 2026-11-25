@@ -145,6 +145,14 @@ dot -Tpng automates/automate_aquestionb.dot -o automates/automate_aquestionb.png
 Les fichiers .dot correspondants sont déjà présents dans automates/.
 Les trois PNG sont également générés dans automates/ (et images/) et sont
 insérés dans le rapport, section 4. Graphviz est maintenant installé (dot 16.1.2).
+L'arbre annoté arbre_annote_a_ou_bcetoile.png est inséré en section 2.3 avec
+la même légende que le schéma fourni (h,n en bleu, s,n' en vert, fabriques en orange).
+Le graphe de dépendances de ab|c est généré par :
+  dot -Tpng images\dependances_ab_ou_c.dot -o images\dependances_ab_ou_c.png
+L'image montre l'arbre syntaxique en pointillé gris, des flèches droites et
+épaisses : bleues et libellées pour les attributs hérités, vertes et
+libellées pour les attributs synthétisés. La légende, les valeurs détaillées
+et l'ordre d'évaluation sont écrits dans le rapport, section 2.2.
 Les arêtes parallèles (même source, même cible) sont regroupées en une
 seule arête avec des labels séparés par des virgules ; l'ordre est ε
 d'abord, puis lexicographique.

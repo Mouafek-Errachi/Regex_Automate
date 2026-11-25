@@ -101,44 +101,87 @@ La première erreur n’est donc **pas** une case vide de la table mais un éche
 
 ### 2.2 Graphe de dépendances de `ab|c`
 
-```text
-R.n = 0
- └─ T.n = R.n = 0
-     ├─ F(a).n = 0 ──> A(a).n = 0 ──> s(A)=(0,1), n'(A)=2
-     │                 └─> F'(ε).h=(0,1), n=2 ──> s(F')=(0,1), n'=2
-     ├─ T'.h = s(F)=(0,1), n = 2
-     │   └─ F(b).n = 2 ──> s=(2,3), n'=4
-     │       └─> concat((0,1),(2,3),4) = (0,3), n'=4
-     └─ s(T)=(0,3), n'(T)=4
- └─ R'.h = s(T)=(0,3), n = 4
-     ├─ T(c).n = 4 ──> s=(4,5), n'=6
-     ├─ union((0,3),(4,5),6) alloue 6,7 ──> h(R'₁)=(6,7), n=8
-     └─ R'(ε).h=(6,7), n=8 ──> s(R')=(6,7), n'=8
-R.s = (6,7), R.n' = 8   (états exactement 0..7)
+IMG|images/dependances_ab_ou_c.png|Graphe de dépendances de `ab|c` (valeurs et lecture dans le texte ci-dessous).|auto dep
+
+**Flèches bleues :**
+- dépendances des attributs hérités (h, n). Elles vont soit du père vers le fils, soit d'un frère de gauche vers un frère de droite. Les étiquettes concat et union marquent les deux endroits où les fonctions de construction utilisent à la fois un attribut hérité et un frère gauche.
+
+
+**Flèches vertes :** 
+- dépendances des attributs synthétisés (s, n'), des fils vers le père.
+
+
+**Pointillés gris :**
+- l'arbre syntaxique de ab|c.
+
+---
+Le résultat : R.s = (6,7) et R.n' = 8, donc les états vont de 0 à 7.
+
+Valeurs portées par les nœuds :
+
+| Nœud | Hérité `(h,n)` | Fabrique / action | Synthétisé `(s,n')` |
+|---|---|---|---|
+| `R` | `⊥, 0` | — | `(6,7), 8` |
+| `T` | `⊥, 0` | — | `(0,3), 4` |
+| `F(a)` | `⊥, 0` | `A(a) : symbole(a,0)` | `(0,1), 2` |
+| `F'(ε)` | `(0,1), 2` | copie ε | `(0,1), 2` |
+| `T'` | `(0,1), 2` | `F(b) : symbole(b,2)` puis `concat((0,1),(2,3),4)` | `(0,3), 4` |
+| `F(b)` | `⊥, 2` | `symbole(b,2)` | `(2,3), 4` |
+| `concat` | `h=(0,1), n=4` | `concat((0,1),(2,3),4)` | `(0,3), 4` |
+| `T'(ε)` | `(0,3), 4` | copie ε | `(0,3), 4` |
+| `R'` | `(0,3), 4` | `T(c) : symbole(c,4)` puis `union((0,3),(4,5),6)` | `(6,7), 8` |
+| `T(c)` | `⊥, 4` | `symbole(c,4)` | `(4,5), 6` |
+| `union` | `h=(0,3), n=6` | `union((0,3),(4,5),6)` alloue `8,9` | `(6,7), 8` |
+| `R'(ε)` | `(6,7), 8` | copie ε | `(6,7), 8` |
+
+Ordre d’évaluation (parcours en profondeur, gauche puis droite) : `A(a) → F'(ε) → F(a) → T'[F(b), concat, T'(ε)] → T → R'[T(c), union, R'(ε)] → R`.
+
+> L-attribué ou S-attribué ?
+
+### L-aatribué:
+
+**Définition.** Un schéma de traduction est L-attribué si, pour chaque symbole `X` de la partie droite d'une production, les attributs hérités de `X` dépendent uniquement :
+ 
+1. des attributs hérités du **père**,
+2. des attributs des symboles situés à **gauche** de `X` dans la production.
+**Vérification sur le graphe.** Toutes les flèches bleues vont soit de haut en bas (père vers fils), soit de gauche à droite (frère gauche vers frère droit). Aucune flèche bleue ne va de droite à gauche.
+ 
+**Conséquence.** Les attributs peuvent être évalués en un seul parcours en profondeur, de gauche à droite. C'est exactement ce que fait un analyseur prédictif descendant : les actions sémantiques sont insérées entre les symboles de la partie droite et exécutées au fil de l'analyse.
+
+### S-aatribué:
+
+**Définition.** Un schéma est S-attribué s'il n'utilise que des attributs synthétisés. Toutes les dépendances vont alors des fils vers le père, et l'évaluation est possible pendant une analyse ascendante.
+ 
+**Vérification sur le graphe.** Les attributs `h` et `n` sont hérités : ils donnent les flèches bleues descendantes et latérales. Exemple décisif :
+ 
 ```
+R'₁.h = union(R'.h, T.s, T.n')
+```
+ 
+Cet attribut dépend de `R'.h`, qui appartient au **père**. Il ne peut donc pas être calculé en remontant uniquement depuis les fils.
+ 
+**Conclusion.** Tout schéma S-attribué est L-attribué, mais la réciproque est fausse. Le schéma étudié est L-attribué sans être S-attribué.
+ 
+---
 
 ### 2.3 Arbre annoté de `a|bc*`
 
-Notation `[h, n | s, n']`.
+La figure suit le même code couleur que l’arbre fourni : **bleu** = attributs hérités `(h,n)` descendus du père, **vert** = attributs synthétisés `(s,n')` remontés vers le père, **orange** = appel d’une fabrique qui crée réellement des états. `h = ⊥` signifie « aucun fragment construit à gauche » et `s = (i,f)` donne l’état initial et l’état final du fragment.
 
-```text
-R [⊥, 0 | (8,9), 10]
-├─ T(a) [⊥, 0 | (0,1), 2]
-│  ├─ A(a)      [⊥, 0     | (0,1), 2]
-│  └─ F'(ε)     [(0,1), 2 | (0,1), 2]
-├─ '|'
-└─ R' [(0,1), 2 | (8,9), 10]
-   ├─ T(bc*) [⊥, 2 | (2,7), 8]
-   │  ├─ F(b)        [⊥, 2     | (2,3), 4]
-   │  ├─ T'          [(2,3), 4 | (2,7), 8]
-   │  │  ├─ F(c*)    [⊥, 4     | (6,7), 8]
-   │  │  │  ├─ A(c)  [⊥, 4     | (4,5), 6]
-   │  │  │  └─ F'(*) [(4,5), 6 | (6,7), 8]
-   │  │  └─ T'(ε)    [(6,7), 8 | (6,7), 8]
-   │  └─ concat((2,3),(6,7),8) = (2,7), n'=8
-   ├─ union((0,1),(2,7),8) alloue 8,9
-   └─ R'(ε) [(8,9), 10 | (8,9), 10]
-```
+IMG|arbre_annote_a_ou_bcetoile.png|Arbre syntaxique annoté de `a|bc*` (schéma L-attribué, NFA de Thompson) : `(h,n)` en bleu, `(s,n')` en vert, fabriques en orange.|auto tree
+
+Lecture guidée de la numérotation : le seul compteur est l’entier `n`, transmis de proche en proche, jamais forké.
+
+| Ordre | Appel de fabrique | États créés | Fragment obtenu | `n'` |
+|---|---|---|---|---|
+| 1 | `symbole(a, 0)` | `0, 1` | `a = (0,1)` | `2` |
+| 2 | `symbole(b, 2)` | `2, 3` | `b = (2,3)` | `4` |
+| 3 | `symbole(c, 4)` | `4, 5` | `c = (4,5)` | `6` |
+| 4 | `star((4,5), 6)` | `6, 7` | `c* = (6,7)` | `8` |
+| 5 | `concat((2,3), (6,7))` | aucun | `bc* = (2,7)` | `8` |
+| 6 | `union((0,1), (2,7), 8)` | `8, 9` | `a\|bc* = (8,9)` | `10` |
+
+**Résultat :** `R.s = (8,9)`, `R.n' = 10`, donc exactement les états `0..9`. Les productions ε des non-terminaux primés ne créent aucun état : elles recopient simplement `h` vers `s` et `n` vers `n'`. C’est cette invariance — `n' = nombre réel d’états alloués` — qui rend l’arbre court et la démonstration immédiate : aucun compteur global, aucun numéro sauté, aucun doublon.
 
 ### 2.4 Associativité et opérateur à précautions
 
@@ -262,7 +305,7 @@ Résultat : `Résumé : 16 expressions, 149 mots, 10 erreurs, 216 automates vér
 
 | Membre | Parties écrites | Parties relues |
 |---|---|---|
-| [Mouafek Errachi] | Toutes les Parties | Toutes les Parties|
+| Mouafek Errachi | Toutes les Parties | Toutes les Parties|
 
 
 ---
@@ -275,5 +318,5 @@ Résultat : `Résumé : 16 expressions, 149 mots, 10 erreurs, 216 automates vér
 | Documentation Graphviz | `digraph`, `rankdir=LR`, `shape=point`, `doublecircle`, commande `dot -Tpng` ||
 | Documentation Java 17 | `record`, `switch` expression, `Files.writeString`, `StandardCharsets.UTF_8` ||
 | Assistant IA — **Big Pickle** (`opencode/big-pickle`) | Aide à la rédaction/refactorisation du code, au jeu de tests et à la génération du PDF |La squelette pour générer le PDF est retenu et des tests ont été faites pour vérifier le code|
-| Outils locaux | `javac -d out src/*.java`, `java -cp out TestRunner`, Edge headless pour l’export PDF |
+| Outils locaux | `javac -d out src/*.java`, `java -cp out TestRunner`, Edge headless pour l’export PDF ||
 
